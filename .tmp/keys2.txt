@@ -1,0 +1,46 @@
+🔧  ARCHITETTURA SISTEMA IBRIDO — Raffineria Eni  |  C-Lab 2025
+La classifica MCDA non identifica UN solo sensore migliore — serve un sistema ibrido. Questo foglio mostra come combinare le tecnologie per diversi scenari operativi.
+
+3A.  SCENARI DI DEPLOYMENT — Raffineria Eni
+Scenario
+S1 — Monitoraggio
+Perimetrale Continuo
+S2 — Risposta a Evento
+(Trigger-based)
+S3 — Monitoraggio
+Sorgente On-Process
+S4 — Comunicazione
+Pubblica (Eni Cafè)
+
+3B.  MATRICE DI COMPLEMENTARIETÀ — Come si integrano le tecnologie
+Tecnologia A
+IOMS qualitativo
+(Oizom Odosense)
+PID ATEX
+(Ion Science Falco)
+TDLAS H₂S
+(Focused Photonics)
+Sensori perimetrali
+(rete distribuita)
+IOMS qualitativo
+(Oizom/Sensirion)
+Dräger X-am 5600
+(multi-gas ATEX)
+Gateway LoRaWAN
+(Multitech Conduit)
+
+3C.  PUNTI CRITICI RAFFINERIA — Sorgenti Odorigene e Tecnologie Raccomandate
+Punto Critico
+Stoccaggio Greggio
+& Prodotti Finiti
+Distillazione Atmosferica
+& Sotto Vuoto
+WWTP — Impianto
+Trattamento Acque
+Torce (Flaring)
+Carico/Scarico
+Autocisterne
+Perimetro Impianto
+(Fenceline)
+Stazione Carburante
+Eni Cafè (Outreach)

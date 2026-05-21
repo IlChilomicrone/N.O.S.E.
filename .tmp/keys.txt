@@ -1,0 +1,71 @@
+⚙️  PESI & CONFIGURAZIONE — Motore MCDA  |  Eni C-Lab
+Le celle gialle sono modificabili. I punteggi MCDA nel foglio MATRICE MCDA sono calcolati con i pesi qui definiti.
+
+1.  PESI MCDA  (devono sommare a 1.00)
+Criterio
+Compliance & Safety
+Performance Tecnica
+Interoperabilità
+Sostenibilità Economica
+TOTALE
+
+2.  TABELLE DI CONVERSIONE PUNTEGGI  (0–10)
+2A — COMPLIANCE & SAFETY
+Parametro
+ATEX
+ATEX
+ATEX
+ATEX
+UNI EN 13725
+UNI EN 13725
+UNI EN 13725
+SNPA 268/2025
+SNPA 268/2025
+SNPA 268/2025
+Tipo IOMS (UNI 11761)
+Tipo IOMS (UNI 11761)
+Tipo IOMS (UNI 11761)
+Tipo IOMS (UNI 11761)
+
+2B — PERFORMANCE TECNICA
+Parametro
+LOD (ppb)
+LOD (ppb)
+LOD (ppb)
+LOD (ppb)
+LOD (ppb)
+Tempo risposta (s)
+Tempo risposta (s)
+Tempo risposta (s)
+Tempo risposta (s)
+Modalità operativa
+Modalità operativa
+Modalità operativa
+Accuratezza (%)
+Accuratezza (%)
+Accuratezza (%)
+Accuratezza (%)
+
+2C — INTEROPERABILITÀ
+Parametro
+Ogni protocollo supportato
+Software proprietario chiuso
+Facilità integrazione (1–5)
+Facilità integrazione (1–5)
+
+2D — SOSTENIBILITÀ ECONOMICA
+Parametro
+TCO 5 anni
+Punteggio economico
+Nota importante
+
+3.  RIFERIMENTI NORMATIVI CHIAVE
+Norma / Decreto
+SNPA Delibera 268/2025
+D.D. MASE n.309 del 28/06/2023
+UNI EN 13725:2022
+UNI 11761:2023
+ATEX Direttiva 2014/34/UE
+D.Lgs. 152/2006 art.272-bis
+UNI EN 15259
+UNI EN 16841

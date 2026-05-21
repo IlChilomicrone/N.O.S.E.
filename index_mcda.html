@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="C-Lab ENI — Piattaforma di valutazione MCDA per sensori odorigeni industriali.">
+  <title>C-Lab ENI — Matrice MCDA</title>
+
+  <!-- Chart.js (potrebbe servire per i pesi in futuro) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    /* Stili specifici per la nuova matrice MCDA */
+    .mcda-table-new { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.85rem; }
+    .mcda-table-new th, .mcda-table-new td { padding: 12px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
+    .mcda-table-new th { background: var(--bg-surface-2); font-weight: 700; color: var(--text-muted); cursor: pointer; user-select: none; }
+    .mcda-table-new th:hover { background: rgba(255,255,255,0.05); }
+    .mcda-table-new tr:hover { background: rgba(0, 51, 153, 0.05); }
+    
+    .macro-col { cursor: pointer; position: relative; }
+    .macro-col:hover::after { content: '🔍 Espandi dettagli'; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap; }
+
+    /* Modal per dettagli */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 1000; display: none; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--bg-surface); width: 90%; max-width: 1000px; max-height: 90vh; border-radius: 16px; border: 1px solid var(--border-subtle); overflow-y: auto; padding: 24px; position: relative; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-close:hover { color: var(--text-primary); }
+    
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
+    .detail-card { background: var(--bg-surface-2); padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle); }
+    .detail-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .detail-value { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+
+    .simple-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    .simple-table th, .simple-table td { padding: 10px; border: 1px solid var(--border-subtle); }
+    .simple-table th { background: var(--bg-surface-2); color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" role="alert" aria-live="polite"></div>
+
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar" role="navigation" aria-label="Navigazione principale">
+    <button id="sidebar-toggle" aria-label="Comprimi sidebar">◀</button>
+
+    <div class="sidebar-logo" style="display:flex; flex-direction:column; align-items:center; gap: 0px; margin-bottom: 20px;">
+      <img src="img/logo.png" alt="Logo Progetto" style="max-width: 160px; height: auto;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <img src="img/logoeni.png" alt="Logo Eni" style="max-width: 52px; height: auto;">
+        <span style="font-size: 1.1rem; font-weight: bold; color: var(--eni-green-dark);">X</span>
+        <img src="img/logoclab.png" alt="Logo C-Lab" style="max-width: 55px; height: auto;">
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Sistema Decisionale</div>
+
+      <div class="nav-item active" data-nav="matrix" id="nav-matrix">
+        <span class="nav-label">Matrice MCDA (A-G)</span>
+      </div>
+
+      <div class="nav-item" data-nav="meteo" id="nav-meteo">
+        <span class="nav-label">Matrice Meteo</span>
+      </div>
+
+      <div class="nav-item" data-nav="consultant" id="nav-consultant">
+        <span class="nav-label">AI Consultant</span>
+      </div>
+
+      <div class="sidebar-section-label">Configurazione (Excel)</div>
+      
+      <div class="nav-item" data-nav="pesi" id="nav-pesi">
+        <span class="nav-label">Configurazione</span>
+      </div>
+
+      <div class="nav-item" data-nav="scenari" id="nav-scenari">
+        <span class="nav-label">Architettura Sistema</span>
+      </div>
+
+      <div class="nav-item" data-nav="istruzioni" id="nav-istruzioni">
+        <span class="nav-label">Istruzioni</span>
+      </div>
+
+      <div class="sidebar-section-label">Altre App</div>
+      
+      <a href="index_monitoraggio.html" class="nav-item" style="text-decoration:none; color:inherit;">
+        <span class="nav-label">Vai al Monitoraggio</span>
+        <span class="nav-badge" style="background:var(--eni-yellow);color:#000">↗</span>
+      </a>
+
+    </div>
+
+    <div class="sidebar-footer" style="display:flex; align-items:center; gap: 12px;">
+      <div class="site-info">
+        <div class="site-name">Enilive Venezia</div>
+        <div class="site-sub" style="font-size:0.65rem">Valutazione Tecnologica</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main" role="main">
+
+    <header id="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="topbar-title" id="topbar-title">Matrice MCDA</div>
+          <div class="topbar-subtitle" id="topbar-subtitle">Valutazione Comparativa Sensori Odorigeni</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="time-display" id="topbar-clock">--:--:--</div>
+      </div>
+    </header>
+
+    <div id="content">
+
+      <!-- VIEW: MATRICE MCDA -->
+      <section id="view-matrix" class="view-section active">
+        <div class="section-title">
+          <div>
+            <h2>Matrice MCDA — Eni C-Lab</h2>
+          </div>
+        </div>
+
+        <div class="matrix-layout" style="grid-template-columns: 1fr;">
+          <div class="matrix-table-wrap">
+            <table class="mcda-table-new">
+              <thead>
+                <tr>
+                  <th style="background: rgba(0, 134, 184, 0.15); border-top: 3px solid var(--eni-blue); color: var(--text-primary); text-align: center; font-size: 0.85rem;">A — IDENTIFICAZIONE</th>
+                  <th style="background: rgba(0, 138, 62, 0.15); border-top: 3px solid var(--eni-green); color: var(--text-primary); text-align: center; font-size: 0.85rem;">B — COMPLIANCE (40%)</th>
+                  <th style="background: rgba(204, 170, 0, 0.15); border-top: 3px solid var(--eni-yellow); color: var(--text-primary); text-align: center; font-size: 0.85rem;">C — PERFORMANCE (25%)</th>
+                  <th style="background: rgba(0, 134, 184, 0.15); border-top: 3px solid var(--status-info); color: var(--text-primary); text-align: center; font-size: 0.85rem;">D — INTEROP. (20%)</th>
+                  <th style="background: rgba(26, 54, 93, 0.3); border-top: 3px solid #1A365D; color: var(--text-primary); text-align: center; font-size: 0.85rem;">E — ECONOMIA (15%)</th>
+                  <th style="background: rgba(160, 174, 192, 0.15); border-top: 3px solid var(--eni-grey); color: var(--text-primary); text-align: center; font-size: 0.85rem;">F — RUOLO</th>
+                  <th style="background: var(--bg-surface-3); border-top: 3px solid var(--text-primary); color: var(--text-primary); text-align: center; font-size: 0.85rem;">G — PUNTEGGIO MCDA</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-tbody">
+                <tr><td colspan="7">Caricamento dati Excel...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top: 12px; text-align: right;">
+            <button class="btn btn-primary" style="border-radius:50%; width:40px; height:40px; padding:0; display:inline-flex; align-items:center; justify-content:center; font-size:1.5rem;" onclick="addManualSensor()" title="Aggiungi Sensore Manualmente">+</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: MATRICE METEO -->
+      <section id="view-meteo" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>Matrice Stazioni Meteo — Eni C-Lab</h2>
+          </div>
+        </div>
+
+        <div class="matrix-layout" style="grid-template-columns: 1fr;">
+          <div class="matrix-table-wrap">
+            <table class="mcda-table-new">
+              <thead>
+                <tr>
+                  <th style="background: rgba(34, 81, 74, 0.15); border-top: 3px solid var(--eni-green-dark); color: var(--text-primary); text-align: center; font-size: 0.85rem;">Rank & Prodotto</th>
+                  <th style="background: rgba(65, 133, 97, 0.15); border-top: 3px solid var(--eni-green); color: var(--text-primary); text-align: center; font-size: 0.85rem;">Completezza (25%)</th>
+                  <th style="background: rgba(186, 104, 62, 0.15); border-top: 3px solid var(--eni-orange); color: var(--text-primary); text-align: center; font-size: 0.85rem;">Accuratezza (25%)</th>
+                  <th style="background: rgba(213, 206, 46, 0.15); border-top: 3px solid var(--eni-yellow); color: var(--text-primary); text-align: center; font-size: 0.85rem;">Range (15%)</th>
+                  <th style="background: rgba(26, 54, 93, 0.15); border-top: 3px solid #1A365D; color: var(--text-primary); text-align: center; font-size: 0.85rem;">Gas Acidi (20%)</th>
+                  <th style="background: rgba(160, 174, 192, 0.15); border-top: 3px solid var(--eni-grey); color: var(--text-primary); text-align: center; font-size: 0.85rem;">Costo (10%) & Manut. (5%)</th>
+                  <th style="background: var(--bg-surface-3); border-top: 3px solid var(--text-primary); color: var(--text-primary); text-align: center; font-size: 0.85rem;">PUNTEGGIO TOTALE</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-meteo-tbody">
+                <tr><td colspan="7">Caricamento dati Excel...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top: 12px; text-align: right;">
+            <button class="btn btn-primary" style="border-radius:50%; width:40px; height:40px; padding:0; display:inline-flex; align-items:center; justify-content:center; font-size:1.5rem;" onclick="addManualStation()" title="Aggiungi Stazione Manualmente">+</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: AI CONSULTANT -->
+      <section id="view-consultant" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>AI Consultant — ARIA</h2>
+          </div>
+        </div>
+
+        <div class="ai-consultant-layout">
+          <div class="chat-panel">
+            <div class="chat-header">
+              <div class="ai-avatar">AI</div>
+              <div>
+                <div class="ai-title">ARIA</div>
+                <div class="ai-subtitle">Advanced Rating Intelligence Assistant</div>
+              </div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages"></div>
+
+            <div class="chat-input-area">
+              <div class="chat-input-hint">💡 Scrivi il nome di un sensore per classificarlo nella Matrice (es. "Sensit SPOD")</div>
+              <div class="input-group">
+                <input type="text" class="input" id="chat-input" placeholder="Aggiungi sensore alla matrice MCDA..." autocomplete="off">
+                <button class="btn btn-accent" id="chat-send">Analizza ➤</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="sensor-preview-panel" class="sensor-preview-panel">
+            <div class="preview-empty" style="padding:40px">
+              <div class="big-icon">🔬</div>
+              <div style="text-align:center">
+                <div style="font-size:1rem;font-weight:600;margin-bottom:8px">Attesa analisi</div>
+                <div style="font-size:0.82rem;color:var(--text-muted)">I risultati dell'AI verranno formattati secondo i 7 gruppi (A-G) della Matrice.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: PESI E CONFIGURAZIONE -->
+      <section id="view-pesi" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>Configurazione</h2>
+          </div>
+        </div>
+        <div class="card" style="padding:24px">
+          <div id="pesi-container"></div>
+        </div>
+      </section>
+
+      <!-- VIEW: ARCHITETTURA -->
+      <section id="view-scenari" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>Architettura Sistema Ibrido</h2>
+          </div>
+        </div>
+        <div class="card" style="padding:24px">
+          <div id="scenari-container"></div>
+        </div>
+      </section>
+
+      <!-- VIEW: ISTRUZIONI -->
+      <section id="view-istruzioni" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>Istruzioni</h2>
+          </div>
+        </div>
+        <div class="card" style="padding:24px">
+          <div id="istruzioni-container"></div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Modale Dettagli Sensore -->
+<div class="modal-overlay" id="sensor-modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="document.getElementById('sensor-modal').classList.remove('active')">×</button>
+    <h2 id="modal-title" style="color:var(--text-primary); margin-bottom: 4px;">Dettaglio Sensore</h2>
+    <div id="modal-subtitle" style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 24px;"></div>
+    
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Script globali e dati -->
+<script src="js/config.js"></script>
+<script src="js/excel_data.js"></script>
+<script src="js/meteo_data.js"></script>
+
+<!-- Controller specifico MCDA -->
+<script src="js/mcda-engine.js"></script>
+<script src="js/ai-consultant.js"></script>
+<script src="js/app_mcda.js"></script>
+
+</body>
+</html>

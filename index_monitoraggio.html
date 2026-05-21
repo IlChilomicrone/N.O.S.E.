@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="C-Lab ENI — Piattaforma di monitoraggio continuo emissioni odorigene industriali.">
+  <title>C-Lab ENI — Monitoraggio Operativo</title>
+
+  <!-- Leaflet.js -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- D3.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Local CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+
+  <style>
+    .leaflet-container { background: #fafdf6; }
+    .leaflet-popup-content-wrapper { background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .leaflet-popup-tip { background: #fff; }
+    .leaflet-control-zoom a { background: #ffffff; color: #334155; border-color: #e2e8f0; }
+    .leaflet-control-zoom a:hover { background: #f1f5f9; color: #0f172a; }
+    .leaflet-control-scale-line { background: rgba(255,255,255,0.9); border-color: #94a3b8; color: #334155; font-size: 10px; }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" role="alert" aria-live="polite"></div>
+
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar" role="navigation" aria-label="Navigazione principale">
+    <button id="sidebar-toggle" aria-label="Comprimi sidebar">◀</button>
+
+    <div class="sidebar-logo" style="display:flex; flex-direction:column; align-items:center; gap: 0px; margin-bottom: 20px;">
+      <img src="img/logo.png" alt="Logo Progetto" style="max-width: 160px; height: auto;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <img src="img/logoeni.png" alt="Logo Eni" style="max-width: 52px; height: auto;">
+        <span style="font-size: 1.1rem; font-weight: bold; color: var(--eni-green-dark);">X</span>
+        <img src="img/logoclab.png" alt="Logo C-Lab" style="max-width: 55px; height: auto;">
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Principale</div>
+
+      <div class="nav-item active" data-nav="dashboard" id="nav-dashboard">
+        <span class="nav-label">Dashboard</span>
+      </div>
+
+      <div class="nav-item" data-nav="report" id="nav-report">
+        <span class="nav-label">Report</span>
+      </div>
+
+      <div class="sidebar-section-label">Altre App</div>
+      
+      <a href="index_mcda.html" class="nav-item" style="text-decoration:none; color:inherit;">
+        <span class="nav-label">Vai a Matrice Sensori</span>
+        <span class="nav-badge" style="background:var(--eni-yellow);color:#000">↗</span>
+      </a>
+
+
+
+    </div>
+
+    <div class="sidebar-footer" style="display:flex; align-items:center; gap: 12px;">
+      <div class="site-info">
+        <div class="site-name">Enilive Venezia</div>
+        <div class="site-sub" style="font-size:0.65rem">1° Zona Ind. Porto Marghera</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main" role="main">
+
+    <header id="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="topbar-title" id="topbar-title">Dashboard Operativa</div>
+          <div class="topbar-subtitle" id="topbar-subtitle">Monitoraggio Real-time</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div id="wind-display" style="font-size:0.8rem;color:var(--text-muted);background:var(--bg-surface-2);padding:6px 12px;border-radius:8px;border:1px solid var(--border-subtle)">
+          💨 SE 4.2 m/s
+        </div>
+        <div class="time-display" id="topbar-clock">--:--:--</div>
+        <div class="live-badge" id="topbar-live">
+          <div class="live-dot"></div>
+          LIVE
+        </div>
+      </div>
+    </header>
+
+    <div id="content">
+
+      <!-- VIEW: DASHBOARD -->
+      <section id="view-dashboard" class="view-section active">
+        <div class="dashboard-grid stagger">
+
+          <!-- Metric Cards -->
+          <div class="metric-cards-row">
+            <div class="metric-card ok" id="metric-card-H2S">
+              <div class="metric-label">Idrogeno Solforato</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="metric-value" id="metric-val-H2S" data-val="0">—</div>
+                <div class="metric-unit">ppb</div>
+              </div>
+              <div class="metric-trend" id="metric-trend-H2S">—</div>
+              <div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Soglia SNPA: 5 ppb | Allarme: 10 ppb</div>
+            </div>
+
+            <div class="metric-card ok" id="metric-card-VOC">
+              <div class="metric-label">VOC (Composti Volatili)</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="metric-value" id="metric-val-VOC" data-val="0">—</div>
+                <div class="metric-unit">ppb</div>
+              </div>
+              <div class="metric-trend" id="metric-trend-VOC">—</div>
+              <div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Soglia SNPA: 200 ppb | Allarme: 400 ppb</div>
+            </div>
+
+            <div class="metric-card ok" id="metric-card-NH3">
+              <div class="metric-label">Ammoniaca</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="metric-value" id="metric-val-NH3" data-val="0">—</div>
+                <div class="metric-unit">ppb</div>
+              </div>
+              <div class="metric-trend" id="metric-trend-NH3">—</div>
+              <div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Soglia SNPA: 100 ppb | Allarme: 200 ppb</div>
+            </div>
+
+            <div class="metric-card ok" id="metric-card-OU">
+              <div class="metric-label">Unità Olfattometriche</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="metric-value" id="metric-val-OU" data-val="0">—</div>
+                <div class="metric-unit">ou/m³</div>
+              </div>
+              <div class="metric-trend" id="metric-trend-OU">—</div>
+              <div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">Soglia SNPA: 5 ou/m³ | UNI EN 13725</div>
+            </div>
+          </div>
+
+          <!-- Mappa Heatmap -->
+          <div class="map-container card" style="padding:0;overflow:hidden">
+            <div class="card-header" style="padding:14px 18px;position:absolute;top:0;left:0;right:0;z-index:600;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border-radius:16px 16px 0 0;border-bottom:1px solid var(--border-subtle);">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="live-dot"></div>
+                <span class="card-title" style="color:var(--text-primary)">Nuvola Odore — Mappa di Calore</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span style="font-size:0.7rem;color:var(--text-muted)">■ Bassa</span>
+                <div style="width:60px;height:5px;border-radius:3px;background:linear-gradient(90deg,#003399,#33CC66,#FFCC00,#FF6600,#FF0000)"></div>
+                <span style="font-size:0.7rem;color:var(--text-muted)">Alta ■</span>
+              </div>
+            </div>
+            <div id="map-leaflet" style="border-radius:16px"></div>
+            <div id="wind-rose-overlay" aria-label="Rosa dei venti"></div>
+            <div style="position:absolute;bottom:16px;left:16px;z-index:600">
+              <button class="citizen-btn" id="citizen-check-btn" style="padding:10px 16px;font-size:0.82rem">
+                <span class="citizen-btn-icon">👤</span>
+                <div class="citizen-btn-text">
+                  <h4 style="font-size:0.85rem;margin-bottom:0">Segnalazione Cittadino</h4>
+                  <p style="font-size:0.7rem;margin:0">Check correlazione istantaneo</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Semaforo Compliance -->
+          <div class="card semaphore-container">
+            <div class="card-header">
+              <span class="card-title">Semaforo di Conformità</span>
+              <span class="badge badge-blue">SNPA 268/2025</span>
+            </div>
+            <div class="semaphore-widget">
+              <div class="semaphore-ring ok pulse-ok" id="semaphore-ring">
+                <div class="semaphore-icon" id="semaphore-icon">OK</div>
+                <div class="semaphore-state" id="semaphore-state" style="color:var(--status-ok)">CONFORME</div>
+                <div class="semaphore-norm" id="semaphore-norm">Valori nei limiti SNPA 268/2025</div>
+              </div>
+              <div class="semaphore-bars">
+                <!-- H2S -->
+                <div class="sem-bar-row">
+                  <div class="sem-bar-header">
+                    <span class="sem-bar-name" style="color:var(--status-alarm)">H₂S</span>
+                    <span class="sem-bar-val" id="sema-val-H2S">— ppb</span>
+                  </div>
+                  <div class="sem-bar-track">
+                    <div class="sem-bar-fill" id="sema-fill-H2S" style="width:0%;background:var(--status-ok)"></div>
+                  </div>
+                </div>
+                <!-- VOC -->
+                <div class="sem-bar-row">
+                  <div class="sem-bar-header">
+                    <span class="sem-bar-name" style="color:var(--eni-yellow)">VOC</span>
+                    <span class="sem-bar-val" id="sema-val-VOC">— ppb</span>
+                  </div>
+                  <div class="sem-bar-track">
+                    <div class="sem-bar-fill" id="sema-fill-VOC" style="width:0%;background:var(--status-ok)"></div>
+                  </div>
+                </div>
+                <!-- NH3 -->
+                <div class="sem-bar-row">
+                  <div class="sem-bar-header">
+                    <span class="sem-bar-name" style="color:var(--status-info)">NH₃</span>
+                    <span class="sem-bar-val" id="sema-val-NH3">— ppb</span>
+                  </div>
+                  <div class="sem-bar-track">
+                    <div class="sem-bar-fill" id="sema-fill-NH3" style="width:0%;background:var(--status-ok)"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="citizen-result-dashboard" style="grid-column:1/-1"></div>
+
+          <!-- Charts Row -->
+          <div class="charts-row">
+            <div class="card chart-card">
+              <div class="card-header">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="live-dot danger"></div>
+                  <span class="card-title">H₂S — Idrogeno Solforato</span>
+                </div>
+                <span class="badge badge-alarm">Soglia: 5 ppb</span>
+              </div>
+              <canvas id="chart-h2s"></canvas>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="live-dot warn"></div>
+                  <span class="card-title">VOC — Composti Organici Volatili</span>
+                </div>
+                <span class="badge badge-warning">Soglia: 200 ppb</span>
+              </div>
+              <canvas id="chart-voc"></canvas>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="live-dot" style="background:var(--status-info)"></div>
+                  <span class="card-title">NH₃ — Ammoniaca</span>
+                </div>
+                <span class="badge badge-info">Soglia: 100 ppb</span>
+              </div>
+              <canvas id="chart-nh3"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIEW: REPORT -->
+      <section id="view-report" class="view-section">
+        <div class="section-title">
+          <div>
+            <h2>Report</h2>
+          </div>
+        </div>
+
+        <div class="report-layout">
+          <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+            <div class="card">
+              <div class="card-header"><span class="card-title">Informazioni Report</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Impianto</div>
+                  <div style="font-size:0.85rem;font-weight:600">Raffineria Eni Venezia — Porto Marghera (VE)</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">Data</div>
+                  <div style="font-size:0.85rem;font-family:var(--font-mono)" id="report-date-display"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><span class="card-title">Genera Documenti</span></div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn btn-accent w-full" id="btn-generate-pdf">Scarica PDF</button>
+                <button class="btn btn-outline w-full" id="btn-export-csv">Esporta CSV</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card report-preview">
+            <div class="card-header">
+              <span class="card-title">Anteprima Report</span>
+              <span class="badge badge-blue">Allegato 1</span>
+            </div>
+            <div class="report-doc" id="report-preview-doc">
+              <div style="text-align:center;color:#ccc;padding:60px 20px">
+                <div style="font-size:2rem;margin-bottom:12px">📄</div>
+                <div>Anteprima in caricamento...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script src="js/config.js"></script>
+<script src="js/excel_data.js"></script>
+<script src="js/mcda-engine.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/heatmap.js"></script>
+<script src="js/citizen-check.js"></script>
+<script src="js/report-generator.js"></script>
+<script src="js/ai-consultant.js"></script>
+<script src="js/app_monitoraggio.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('report-date-display');
+    if (el) el.textContent = new Date().toLocaleString('it-IT');
+  });
+</script>
+
+</body>
+</html>
