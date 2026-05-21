@@ -1,16 +1,16 @@
 # Matrice Eni - Piattaforma C-Lab
 
-Benvenuto nel progetto **Matrice Eni**, una piattaforma web interattiva e dinamica sviluppata per l'**Eni C-Lab**. 
-L'obiettivo principale di questo strumento è fornire un sistema professionale di valutazione, confronto e monitoraggio per **Sensori Odorigeni** e **Stazioni Meteorologiche**.
+Benvenuto nel progetto **N.O.S.E.**, una piattaforma web interattiva e dinamica sviluppata per **C-Lab Padova** a risposta della sfida lanciata da **ENI spa**. 
+L'obiettivo principale di questo strumento è fornire, quantomento il concetto, di un sistema di valutazione, confronto e monitoraggio per **Sensori Odorigeni** e **Stazioni Meteorologiche**.
 
-## 🎯 Funzionalità Principali
+## Funzionalità Principali
 
-- **Analisi MCDA (Multi-Criteria Decision Analysis)**: Valutazione dei dispositivi tramite matrici decisionali. Gli esperti possono variare i "pesi" dei criteri (es. Compliance, Performance, Costo) in tempo reale tramite slider, ricalcolando i punteggi dinamicamente.
-- **Interfaccia Professionale**: Design in dark-mode desaturato ottimizzato per l'usabilità tecnica, in linea con i colori del brand Eni.
+- **Analisi MCDA (Multi-Criteria Decision Analysis)**: Valutazione dei dispositivi (sia di stazioni meteo che di sensori odorigeni) tramite matrici decisionali. è possibile variare i "pesi" sia dei macro criteri (Compliance, Performance, Connettività ed economia) che dei singoli parametri che descrivono i macro criteri, in tempo reale tramite slider, ricalcolando i punteggi dinamicamente.
+- **contestualizzazione**: scelta del sensore più adatto in base all'esigenza specifica
 - **Monitoraggio Continuo**: Dashboard dedicata per il monitoraggio sul campo.
-- **AI Consultant (ARIA)**: Assistente virtuale integrato per supportare l'interpretazione dei dati.
+- **AI Consultant (ARIA)**: Assistente virtuale integrato per supportare l'interpretazione dei dati e l'analisi di mercato in tempo reale.
 
-## 📁 Struttura del Progetto
+## Struttura del Progetto
 
 Il progetto segue un'architettura modulare:
 - I dati sorgente sono gestiti tramite fogli di calcolo (`Matrice_MCDA_Sensori_Odorigeni_Eni_CLab_V2.xlsx` e `analisi_comparativa_stazioni_meteo (1).ods`).
@@ -20,7 +20,7 @@ Il progetto segue un'architettura modulare:
   - `index_meteo.html`: Dashboard delle Stazioni Meteorologiche.
   - `index_monitoraggio.html`: Dashboard di monitoraggio generale.
 
-## 🚀 Come usare il progetto (Guida per l'Utente)
+## Come usare il progetto (Guida per l'Utente)
 
 ### Prerequisiti
 - Un browser web moderno (Chrome, Firefox, Edge, Safari).
